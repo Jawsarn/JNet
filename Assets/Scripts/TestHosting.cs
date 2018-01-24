@@ -12,4 +12,10 @@ public class TestHosting : MonoBehaviour {
         m_textHud.text = "Hosting..";
         JNet.StartHosting(JNet.LobbyType.Public);
     }
+
+    public void OnPressJoin()
+    {
+        m_textHud.text = "Joining..";
+        JNet.JoinRandomLobby();
+    }
 }

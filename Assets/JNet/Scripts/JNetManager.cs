@@ -7,7 +7,6 @@ namespace JNetInternal
 {
     public class JNetManager : MonoBehaviour
     {
-
         private static JNetManager p_singleton;
         public static JNetManager m_singleton
         {
@@ -44,16 +43,13 @@ namespace JNetInternal
         public int m_maximumMembersByUser = 8; // Does nothing if hasConstantSetMembers is true
 
         [Header("Packet/Messaging settings")]
-
         public EP2PSend[] m_channels = { EP2PSend.k_EP2PSendReliable, EP2PSend.k_EP2PSendUnreliable };
-
         public uint m_maxPacketPerChannelPerUpdate = 100; // Since we're using normal update, this can freeze the game
 
         CSteamID m_currentLobby = CSteamID.Nil;
-
+        CSteamID m_currentHostID = CSteamID.Nil;
         bool m_isHost = false; // Used for checking if we enteredLobby as creators or not
 
-        CSteamID m_currentHostID = CSteamID.Nil;
 
         // This creates connection to all clients for a nonMaster client
         // i.e. data such as position and rotation doesn't have to bypass masterClient
@@ -61,6 +57,7 @@ namespace JNetInternal
 
         // callbacks
         private Callback<LobbyEnter_t> m_LobbyEntered;
+        private CallResult<LobbyMatchList_t> m_LobbyMatchList;
 
         // logical callbacks
         JNetMessageLogic m_msgLogic = new JNetMessageLogic();
@@ -82,6 +79,7 @@ namespace JNetInternal
             if (SteamInit.m_InitializationSucceeded)
             {
                 m_LobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
+                m_LobbyMatchList = CallResult<LobbyMatchList_t>.Create(OnLobbyMatchList);
             }
 
             // Register callbacks for messages
@@ -131,6 +129,54 @@ namespace JNetInternal
             SteamMatchmaking.JoinLobby((CSteamID)lobbyId);
 
             // ...continued in OnLobbyEntered callback
+        }
+
+        public void JoinRandomLobby()
+        {
+            if (!SteamInit.m_InitializationSucceeded)
+            {
+                m_lobbyConnectionState = ConnectionState.DISCONNECTED;
+
+                // TODO add error message or similar
+
+                return;
+            }
+
+            if (m_lobbyConnectionState != ConnectionState.DISCONNECTED)
+            {
+                // We are already in a connection phase.. should be disconnected first?
+                // TODO check if this is true
+                return;
+            }
+
+            m_lobbyConnectionState = ConnectionState.CONNECTING;
+            m_isHost = false;
+
+            SteamMatchmaking.AddRequestLobbyListStringFilter("Version", GameVersion.m_version, ELobbyComparison.k_ELobbyComparisonEqual);
+            var call = SteamMatchmaking.RequestLobbyList();
+            m_LobbyMatchList.Set(call);
+
+            // ...continued in OnLobbyMatchList callback
+        }
+
+        void OnLobbyMatchList(LobbyMatchList_t pCallback, bool bIOFailure)
+        {
+            // TODO don't hardcode this to random join
+            uint numLobbies = pCallback.m_nLobbiesMatching;
+
+            if (numLobbies == 0)
+            {
+                Debug.Log("No lobbies found");
+                return;
+            }
+
+            if(numLobbies > 1)
+            {
+                Debug.Log("Found more then one lobby! (not good if testing)");
+            }
+
+            Debug.Log("Joining lobby");
+            JoinLobby(SteamMatchmaking.GetLobbyByIndex(0));
         }
 
         public void CreateLobby(ELobbyType lobbyType)
@@ -306,6 +352,7 @@ namespace JNetInternal
                 msgCount = 0;
                 while (SteamNetworking.IsP2PPacketAvailable(out msgSize) && msgCount < m_maxPacketPerChannelPerUpdate)
                 {
+                    Debug.Log("receiving something");
                     msgCount++;
                     buffer = new byte[msgSize];
                     if (SteamNetworking.ReadP2PPacket(buffer, 0, out msgSize, out senderID, channel))

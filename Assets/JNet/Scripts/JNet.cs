@@ -87,6 +87,11 @@ public class JNet
         JNetManager.m_singleton.JoinLobby((CSteamID)lobbyID);
     }
 
+    public static void JoinRandomLobby()
+    {
+        JNetManager.m_singleton.JoinRandomLobby();
+    }
+
     public static void RegisterMessageCallback(JNetMessageType type, OnMessageReceivedFunction callbackFunc)
     {
         JNetPacketHandler.RegisterMessageCallback(type, callbackFunc);
