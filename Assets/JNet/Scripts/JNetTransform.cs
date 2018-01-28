@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class JNetTransform : JNetBehaviour {
 
-	void Start () {
+    private void Awake()
+    {
+        
+    }
+    void Start () {
         MyFunction();
     }
 	

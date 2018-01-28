@@ -60,7 +60,7 @@ namespace JNetInternal
         private CallResult<LobbyMatchList_t> m_LobbyMatchList;
 
         // logical callbacks
-        JNetMessageLogic m_msgLogic = new JNetMessageLogic();
+        JNetInternalMessageLogic m_msgLogic = new JNetInternalMessageLogic();
 
         // TODO add debug print levels and debug prints
 

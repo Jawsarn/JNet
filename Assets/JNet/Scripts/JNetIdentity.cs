@@ -8,18 +8,16 @@ public class JNetIdentity : MonoBehaviour {
     public ulong ownerID = 0;
 
     uint netID = 0;
+    uint m_sceneID;
+    public uint sceneID { get { return m_sceneID; } } // Only used for objects that are placed in scene before run
+    
+    // TODO add call for JNetBehavior NetAwake when ID been assigned
 
-    private void Awake()
+    ///<summary>
+    /// Should only be called by postProcess script
+    ///</summary>
+    public void SetSceneID(uint newID)
     {
-        //netID = m_nextID;
-        // This is a bit problematic
-        // If we do by editor etc to get ID for nonInstanciated objects, a newly loaded scene with JNetIdentities might have invalid IDs
-        // e.g. 2 view objects in first scene and 6 in next, inbetween we instanciated some objects that are scene presistant
-        // If we add them on Awake, it will be dependent on startorder, which is a problem
-    }
-
-    private void Start()
-    {
-
+        m_sceneID = newID;
     }
 }

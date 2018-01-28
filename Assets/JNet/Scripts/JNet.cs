@@ -30,13 +30,13 @@ public class JNet
         return JNetManager.m_singleton.GetCurrentHostID();
     }
 
-
     public static void RPC(string name, params object[] values)
     {
         for (int i = 0; i < values.Length; i++)
         {
             var type = values[i].GetType();
             //NetworkWriter writer = new NetworkWriter();
+            // TODO continue
         }
     }
 
@@ -50,6 +50,7 @@ public class JNet
         int val2 = readStream.ReadInt();
         string val3 = null;
         readStream.ReadString(out val3);
+        // TODO continue
     }
 
     public static void StartHosting(LobbyType lobbyType)
@@ -74,7 +75,6 @@ public class JNet
         }
 
         JNetManager.m_singleton.CreateLobby(stype);
-
     }
 
     public static void JoinUsersLobby(ulong userID)

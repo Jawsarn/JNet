@@ -3,6 +3,7 @@ public enum JNetMessageType
 {
     Invalid,
     Spawn,
+    SpawnSceneObject,
     Destroy,
     Serialize,
     Rpc

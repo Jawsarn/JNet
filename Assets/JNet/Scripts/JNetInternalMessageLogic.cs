@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JNetInternal
 {
-    public class JNetMessageLogic
+    public class JNetInternalMessageLogic
     {
 
         //Invalid,
@@ -16,6 +16,7 @@ namespace JNetInternal
         public void RegisterCallbacks()
         {
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Spawn, OnSpawnMessage);
+            JNetPacketHandler.RegisterMessageCallback(JNetMessageType.SpawnSceneObject, OnSpawnSceneObjectMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Destroy, OnDestroyMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Serialize, OnSerializeMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Rpc, OnRpcMessage);
@@ -26,10 +27,12 @@ namespace JNetInternal
             if (JNet.isMasterClient)
             {
                 // Spawn and tell everyone else
+                
             }
             else if (msg.m_senderID == JNet.GetCurrentHostID())
             {
                 // Read prefab, pos, rot and authority
+                uint netID = msg.m_bitStream.ReadUInt();
                 ushort prefabID = msg.m_bitStream.ReadUShort();
                 Vector3 spawnPos;
                 msg.m_bitStream.ReadVector3(out spawnPos);
@@ -62,11 +65,40 @@ namespace JNetInternal
             }
         }
 
+        void OnSpawnSceneObjectMessage(JNetMessage msg)
+        {
+            if (JNet.isMasterClient)
+            {
+                // Spawn and tell everyone else?
+            }
+            else if (msg.m_senderID == JNet.GetCurrentHostID())
+            {
+                // Read netID and sceneID
+                uint netID = msg.m_bitStream.ReadUInt();
+                uint sceneID = msg.m_bitStream.ReadUInt(); // change to short?
+
+                // Find sceneObject
+                GameObject sceneObj = JNetSceneHandler.FindSceneObjectWithID(sceneID);
+                if (sceneObj != null)
+                {
+                    
+                }
+                else
+                {
+                    // TODO error msg
+                }
+            }
+            else
+            {
+                // TODO error msg
+            }
+        }
+
         void OnDestroyMessage(JNetMessage msg)
         {
             if (JNet.isMasterClient)
             {
-                // Spawn and tell everyone else
+                // Destroy and tell everyone else
             }
             else if (msg.m_senderID == JNet.GetCurrentHostID())
             {
