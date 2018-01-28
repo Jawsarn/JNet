@@ -18,4 +18,9 @@ public class TestHosting : MonoBehaviour {
         m_textHud.text = "Joining..";
         JNet.JoinRandomLobby();
     }
+
+    private void Update()
+    {
+        
+    }
 }

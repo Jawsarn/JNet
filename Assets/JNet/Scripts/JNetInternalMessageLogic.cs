@@ -4,15 +4,11 @@ using UnityEngine;
 
 namespace JNetInternal
 {
+    ///<summary>
+    /// Handles internal messages of spawning, destroying, serializing etc. Register called from JNetManager.
+    ///</summary>
     public class JNetInternalMessageLogic
     {
-
-        //Invalid,
-        //Spawn,
-        //Destroy,
-        //Serialize,
-        //Rpc
-
         public void RegisterCallbacks()
         {
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Spawn, OnSpawnMessage);
@@ -81,7 +77,7 @@ namespace JNetInternal
                 GameObject sceneObj = JNetSceneHandler.FindSceneObjectWithID(sceneID);
                 if (sceneObj != null)
                 {
-                    
+                    sceneObj.GetComponent<JNetIdentity>().SetNetID(netID);
                 }
                 else
                 {
