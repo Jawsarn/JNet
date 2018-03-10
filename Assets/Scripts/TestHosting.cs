@@ -7,6 +7,8 @@ public class TestHosting : MonoBehaviour {
 
     public Text m_textHud;
 
+    Dictionary<string, uint> m_test = new Dictionary<string, uint>();
+
     public void OnPressHost()
     {
         m_textHud.text = "Hosting..";

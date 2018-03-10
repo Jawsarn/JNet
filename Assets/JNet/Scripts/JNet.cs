@@ -1,10 +1,27 @@
 ﻿using System;
 using Steamworks;
 using JNetInternal;
+using UnityEngine;
 
 public class JRPC : Attribute
 {
 
+}
+
+
+///<summary>
+/// How the RPC will execute between clients.
+///</summary>
+// Mirroring Photons version
+public enum JNetTarget
+{
+    All,
+    Others,
+    MasterClient,
+    AllBuffered,
+    OthersBuffered,
+    AllViaServer,
+    AllBufferedViaServer
 }
 
 // This class is used as a facade mostly
@@ -30,7 +47,12 @@ public class JNet
         return JNetManager.m_singleton.GetCurrentHostID();
     }
 
-    public static void RPC(string name, params object[] values)
+    public static uint GetClientIndex()
+    {
+        return JNetManager.m_singleton.GetCurrentClientIndex();
+    }
+
+    public static void RPC(string name, JNetTarget target, params object[] values)
     {
         for (int i = 0; i < values.Length; i++)
         {
@@ -43,14 +65,55 @@ public class JNet
     ///<summary>
     /// Advanced version of RPC where you use a stream, this can be used to improve bandwith by using e.g. half/bools as bits or other compressed info
     ///</summary>
-    public static void RPCAdv(string name, JBitStream stream)
+    public static void RPCAdv(string name, JNetTarget target, JNetBitStream stream)
     {
-        JBitStream readStream = new JBitStream(stream.Data, stream.BytesUsed);
+        JNetBitStream readStream = new JNetBitStream(stream.Data, stream.BytesUsed);
         float val1 = readStream.ReadFloat();
         int val2 = readStream.ReadInt();
         string val3 = null;
         readStream.ReadString(out val3);
         // TODO continue
+    }
+
+    public static GameObject Instantiate(GameObject prefab, Vector3 position, Quaternion orientation)
+    {
+        GameObject prefabObj = JNetManager.m_singleton.GetPrefab(prefab);
+        return InstantiateAndSpawn(prefabObj, position, orientation);
+    }
+
+    public static GameObject Instantiate(string prefabName, Vector3 position, Quaternion orientation)
+    {
+        GameObject prefabObj = JNetManager.m_singleton.GetPrefab(prefabName);
+        return InstantiateAndSpawn(prefabObj, position, orientation); ;
+    }
+
+    private static GameObject InstantiateAndSpawn(GameObject prefab, Vector3 position, Quaternion orientation)
+    {
+        if (prefab != null)
+        {
+            GameObject newObject = GameObject.Instantiate(prefab, position, orientation);
+            JNetIdentity netID = newObject.GetComponent<JNetIdentity>();
+            netID.SetOwnerIndex(GetClientIndex());
+            netID.GenerateNextID();
+
+            ushort prefabIndex = JNetManager.m_singleton.GetPrefabIndex(prefab);
+
+            // Create stream to write data
+            JNetMessage newMessage = new JNetMessage(JNetMessageType.Spawn, sizeof(uint) + sizeof(float) * 3 + sizeof(float) * 4);
+            newMessage.m_bitStream.WriteUShort(prefabIndex);
+            newMessage.m_bitStream.WriteUInt(netID.netID);
+            newMessage.m_bitStream.WriteVector3(position);
+            newMessage.m_bitStream.WriteQuaternion(orientation);
+            newMessage.m_senderID = GetClientID(); // Not sure if needed?
+
+            JNetMessageHandler.AddMessage(newMessage, false); // Don't buffer, since we want to send an updated position
+
+            return newObject;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public static void StartHosting(LobbyType lobbyType)

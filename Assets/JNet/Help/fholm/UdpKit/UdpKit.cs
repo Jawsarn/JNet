@@ -34,7 +34,7 @@ public struct UdpBitPosition
 	internal UdpBitPosition(int p) { Ptr = p; }
 }
 
-public struct JBitStream//UdpBitStream
+public struct JNetBitStream//UdpBitStream
 {
 	internal int Ptr;
 	internal int Length;
@@ -56,28 +56,28 @@ public struct JBitStream//UdpBitStream
 		get { return Ptr > Length; }
 	}
 
-    internal JBitStream/*UdpBitStream*/(int size)
+    internal JNetBitStream/*UdpBitStream*/(int size)
     {
         Ptr = 0;
         Data = new byte[size];
         Length = Data.Length << 3;
     }
 
-    internal JBitStream/*UdpBitStream*/(byte[] arr)
+    internal JNetBitStream/*UdpBitStream*/(byte[] arr)
     {
         Ptr = 0;
         Data = arr;
         Length = Data.Length << 3;
     }
 
-    internal JBitStream/*UdpBitStream*/(byte[] arr, int size)
+    internal JNetBitStream/*UdpBitStream*/(byte[] arr, int size)
 	{
 		Ptr = 0;
 		Data = arr;
 		Length = size << 3;
 	}
 
-	internal JBitStream/*UdpBitStream*/(byte[] arr, int size, int offset)
+	internal JNetBitStream/*UdpBitStream*/(byte[] arr, int size, int offset)
 	{
 		Ptr = offset;
 		Data = arr;
@@ -598,23 +598,35 @@ public struct JBitStream//UdpBitStream
         WriteFloat(value.z);
     }
 
-    public void ReadVector3(out Vector3 value)
+    public Vector3 ReadVector3()
     {
-        value = new Vector3();
+        Vector3 value = new Vector3();
 
         value.x = ReadFloat();
         value.y = ReadFloat();
         value.z = ReadFloat();
+
+        return value;
     }
 
-    public void ReadQuaternion(out Quaternion value)
+    public void WriteQuaternion(Quaternion value)
     {
-        value = new Quaternion();
+        WriteFloat(value.x);
+        WriteFloat(value.y);
+        WriteFloat(value.z);
+        WriteFloat(value.w);
+    }
+
+    public Quaternion ReadQuaternion()
+    {
+        Quaternion value = new Quaternion();
 
         value.x = ReadFloat();
         value.y = ReadFloat();
         value.z = ReadFloat();
         value.w = ReadFloat();
+
+        return value;
     }
 }
 //}

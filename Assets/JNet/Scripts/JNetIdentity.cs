@@ -7,13 +7,21 @@ using UnityEngine;
 /// All network objects using JNet should have this.
 ///</summary>
 public class JNetIdentity : MonoBehaviour {
-    public static uint m_nextID = 1; // start at 1, 0 is error
+
+    ///<summary>
+    /// The maximum amount of network objects per scene or player.
+    /// Change this if you need more, but will limit the maximum amount of players.
+    ///</summary>
+    public const uint maxNetObjectsPerPlayer = 10000;
+    
+    public static uint m_currentOffsettID = 0;
     public ulong ownerID = 0;
+
+    public uint m_ownerIndex = 0;
+    public uint ownerIndex { get { return m_ownerIndex; } }
 
     uint m_netID = 0;
     public uint netID { get { return m_netID; } }
-    uint m_sceneID;
-    public uint sceneID { get { return m_sceneID; } } // Only used for objects that are placed in scene before run
 
     JNetBehaviour[] m_JNetBehaviours;
 
@@ -23,15 +31,7 @@ public class JNetIdentity : MonoBehaviour {
     }
 
     ///<summary>
-    /// Should only be called by postProcess script
-    ///</summary>
-    public void SetSceneID(uint newID)
-    {
-        m_sceneID = newID;
-    }
-
-    ///<summary>
-    /// Should only be called by Spawn messagest
+    /// Should only be called by Spawn message
     ///</summary>
     public void SetNetID(uint newID)
     {
@@ -41,8 +41,30 @@ public class JNetIdentity : MonoBehaviour {
 
     }
 
+    internal void GenerateNextID()
+    {
+        m_netID = ownerIndex*maxNetObjectsPerPlayer + m_currentOffsettID++;
+    }
+
+    ///<summary>
+    /// Should only be called by Spawn message
+    ///</summary>
+    public void SetOwnerIndex(uint newIndex)
+    {
+        m_ownerIndex = newIndex;
+    }
+
     void UpdateBehaviours()
     {
         m_JNetBehaviours = GetComponents<JNetBehaviour>(); // TODO consider adding a behavior in runtime, problematic with serialization
     }
+
+    internal void Deserialize(JNetBitStream m_bitStream)
+    {
+        foreach (var behaviour in m_JNetBehaviours)
+        {
+            behaviour.OnRead(m_bitStream);
+        }
+    }
+
 }

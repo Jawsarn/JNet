@@ -12,7 +12,6 @@ namespace JNetInternal
         public void RegisterCallbacks()
         {
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Spawn, OnSpawnMessage);
-            JNetPacketHandler.RegisterMessageCallback(JNetMessageType.SpawnSceneObject, OnSpawnSceneObjectMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Destroy, OnDestroyMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Serialize, OnSerializeMessage);
             JNetPacketHandler.RegisterMessageCallback(JNetMessageType.Rpc, OnRpcMessage);
@@ -20,20 +19,13 @@ namespace JNetInternal
 
         void OnSpawnMessage(JNetMessage msg)
         {
-            if (JNet.isMasterClient)
-            {
-                // Spawn and tell everyone else
-                
-            }
-            else if (msg.m_senderID == JNet.GetCurrentHostID())
+            if (msg.m_senderID != JNet.GetCurrentHostID())
             {
                 // Read prefab, pos, rot and authority
                 uint netID = msg.m_bitStream.ReadUInt();
                 ushort prefabID = msg.m_bitStream.ReadUShort();
-                Vector3 spawnPos;
-                msg.m_bitStream.ReadVector3(out spawnPos);
-                Quaternion spawnRot;
-                msg.m_bitStream.ReadQuaternion(out spawnRot);
+                Vector3 spawnPos = msg.m_bitStream.ReadVector3();
+                Quaternion spawnRot = msg.m_bitStream.ReadQuaternion();
                 bool senderAuthority = msg.m_bitStream.ReadBool();
 
                 // Spawn object
@@ -61,35 +53,6 @@ namespace JNetInternal
             }
         }
 
-        void OnSpawnSceneObjectMessage(JNetMessage msg)
-        {
-            if (JNet.isMasterClient)
-            {
-                // Spawn and tell everyone else?
-            }
-            else if (msg.m_senderID == JNet.GetCurrentHostID())
-            {
-                // Read netID and sceneID
-                uint netID = msg.m_bitStream.ReadUInt();
-                uint sceneID = msg.m_bitStream.ReadUInt(); // change to short?
-
-                // Find sceneObject
-                GameObject sceneObj = JNetSceneHandler.FindSceneObjectWithID(sceneID);
-                if (sceneObj != null)
-                {
-                    sceneObj.GetComponent<JNetIdentity>().SetNetID(netID);
-                }
-                else
-                {
-                    // TODO error msg
-                }
-            }
-            else
-            {
-                // TODO error msg
-            }
-        }
-
         void OnDestroyMessage(JNetMessage msg)
         {
             if (JNet.isMasterClient)
@@ -108,7 +71,14 @@ namespace JNetInternal
 
         void OnSerializeMessage(JNetMessage msg)
         {
+            uint netID = msg.m_bitStream.ReadUInt();
 
+            JNetIdentity netIdentity = JNetSceneHandler.FindNetIdentity(netID);
+
+            if (netIdentity != null)
+            {
+                netIdentity.Deserialize(msg.m_bitStream);
+            }
         }
 
         void OnRpcMessage(JNetMessage msg)

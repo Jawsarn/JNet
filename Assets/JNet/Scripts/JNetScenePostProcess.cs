@@ -3,26 +3,33 @@ using System.Collections.Generic;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
-public class JNetScenePostProcess : MonoBehaviour {
-
-    ///<summary>
-    /// Copied from UNET, 
-    ///</summary>
-    [PostProcessScene]
-    public static void OnPostProcessScene()
+namespace JNetInternal
+{
+    public class JNetScenePostProcess : MonoBehaviour
     {
-        uint nextSceneId = 1;
-        foreach (JNetIdentity netID in FindObjectsOfType<JNetIdentity>())
-        {
-            if (netID.GetComponent<JNetInternal.JNetManager>() != null)
-            {
-                Debug.LogError("JNetManager has a JNetIdentity component. Not good.");
-            }
 
-            // Since no netID assigned, we unactivate objects until assigned
-            // i.e. Awake will be called before this,
-            netID.gameObject.SetActive(false);
-            netID.SetSceneID(nextSceneId++);
+        ///<summary>
+        /// Copied from UNET, 
+        ///</summary>
+        [PostProcessScene]
+        public static void OnPostProcessScene()
+        {
+            // Remove old objects
+            JNetSceneHandler.ClearSceneObjects();
+
+            // Add scene objects to scene handler
+            uint nextSceneId = 1;
+            foreach (JNetIdentity netID in FindObjectsOfType<JNetIdentity>())
+            {
+                if (netID.GetComponent<JNetInternal.JNetManager>() != null)
+                {
+                    Debug.LogError("JNetManager has a JNetIdentity component. Not good.");
+                }
+
+                // Can't add the IDs on awake, cause no ID assigned
+                netID.SetNetID(nextSceneId++);
+                JNetSceneHandler.AddNetObject(netID);
+            }
         }
     }
 }

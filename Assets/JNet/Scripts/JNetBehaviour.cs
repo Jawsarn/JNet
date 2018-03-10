@@ -15,12 +15,12 @@ public abstract class JNetBehaviour : MonoBehaviour {
 
     }
 
-    protected virtual void JNetWrite(JBitStream stream)
+    public virtual void OnWrite(JNetBitStream stream)
     {
 
     }
 
-    protected virtual void JNetRead(JBitStream stream)
+    public virtual void OnRead(JNetBitStream stream)
     {
 
     }

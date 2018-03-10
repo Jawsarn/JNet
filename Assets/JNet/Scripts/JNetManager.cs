@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace JNetInternal
 {
@@ -35,7 +36,12 @@ namespace JNetInternal
         [SerializeField]
         ConnectionState m_lobbyConnectionState = ConnectionState.DISCONNECTED;
 
-        public List<JNetIdentity> m_networkPrefabs;
+        // Considered using Resource.Load(), but requires sending strings over network
+        ///<summary>
+        /// Prefabs that are spawnable during runtime, note: needs to be modified to be changed during runtime (use some function to add to dict as well)
+        ///</summary>
+        public List<GameObject> m_networkPrefabs = new List<GameObject>();
+        Dictionary<string, GameObject> m_networkPrefabsDict = new Dictionary<string, GameObject>();
 
         // TODO consider making this a #define, shouldn't change runtime?
         public int m_defaultMembers = 4; // Default members if no input
@@ -48,6 +54,7 @@ namespace JNetInternal
 
         CSteamID m_currentLobby = CSteamID.Nil;
         CSteamID m_currentHostID = CSteamID.Nil;
+        uint m_clientIndex = 0;
         bool m_isHost = false; // Used for checking if we enteredLobby as creators or not
 
 
@@ -58,6 +65,7 @@ namespace JNetInternal
         // callbacks
         private Callback<LobbyEnter_t> m_LobbyEntered;
         private CallResult<LobbyMatchList_t> m_LobbyMatchList;
+
 
         // logical callbacks
         JNetInternalMessageLogic m_msgLogic = new JNetInternalMessageLogic();
@@ -84,6 +92,29 @@ namespace JNetInternal
 
             // Register callbacks for messages
             m_msgLogic.RegisterCallbacks();
+
+
+            List<GameObject> m_errorObjects = new List<GameObject>();
+            foreach (var item in m_networkPrefabs)
+            {
+                if (item.GetComponent<JNetIdentity>() == null)
+                {
+                    // TODO make this whole thing OnGUI or mby add it under verbose stuff logging?
+                    Debug.LogError("ERROR: Spawnable prefab without gameObject found name:" + item.name);
+                }
+            }
+
+            // Removing objects that didn't have netIDs so other things can work
+            for (int i = 0; i < m_errorObjects.Count; i++)
+            {
+                m_networkPrefabs.Remove(m_errorObjects[i]);
+            }
+
+            // Add prefabs to string cache
+            foreach (var pref in m_networkPrefabs)
+            {
+                m_networkPrefabsDict.Add(pref.name, pref);
+            }
         }
 
         public ulong GetCurrentHostID()
@@ -94,6 +125,35 @@ namespace JNetInternal
         public ulong GetClientID()
         {
             return SteamUser.GetSteamID().m_SteamID;
+        }
+
+        internal uint GetCurrentClientIndex()
+        {
+            return m_clientIndex;
+        }
+
+        public GameObject GetPrefab(GameObject prefabObj)
+        {
+            if(m_networkPrefabs.Contains(prefabObj))
+            {
+                return prefabObj;
+            }
+            else
+            {
+                return null;
+            }
+            //return GetPrefab(prefabObj.name); // TODO consider faster?
+        }
+
+        public GameObject GetPrefab(string prefabName)
+        {
+            return m_networkPrefabsDict[prefabName];
+        }
+
+        public ushort GetPrefabIndex(GameObject prefab)
+        {
+            // Not safe
+            return (ushort)m_networkPrefabs.IndexOf(prefab);
         }
 
         public GameObject InstanciateFromPrefab(ushort prefabID, Vector3 position, Quaternion rotation)
@@ -343,25 +403,8 @@ namespace JNetInternal
                 }
             }
 
-            uint msgSize;
-            uint msgCount;
-            byte[] buffer;
-            CSteamID senderID;
-            for (int channel = 0; channel < m_channels.Length; channel++)
-            {
-                msgCount = 0;
-                while (SteamNetworking.IsP2PPacketAvailable(out msgSize) && msgCount < m_maxPacketPerChannelPerUpdate)
-                {
-                    Debug.Log("receiving something");
-                    msgCount++;
-                    buffer = new byte[msgSize];
-                    if (SteamNetworking.ReadP2PPacket(buffer, 0, out msgSize, out senderID, channel))
-                    {
-                        // Send to reading system
-                        JNetPacketHandler.ReadPacket(buffer, msgSize, senderID.m_SteamID);
-                    }
-                }
-            }
+            // Process messages
+            JNetPacketHandler.ReadPckets();
         }
 
         void LateUpdate()

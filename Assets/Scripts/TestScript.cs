@@ -6,7 +6,7 @@ public class TestScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        JBitStream stream = new JBitStream(300);
+        JNetBitStream stream = new JNetBitStream(300);
         stream.WriteUShort(5);
         stream.WriteUShort(43);
         stream.WriteFloat(1337.0f);

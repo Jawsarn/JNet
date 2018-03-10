@@ -20,28 +20,27 @@ public class JNetTransform : JNetBehaviour {
         }
 	}
 
-    protected override void JNetWrite(JBitStream stream)
+    public override void OnWrite(JNetBitStream stream)
     {
-
+        stream.WriteVector3(transform.position);
     }
 
-    protected override void JNetRead(JBitStream stream)
+    public override void OnRead(JNetBitStream stream)
     {
-        Vector3 newPos;
-        stream.ReadVector3(out newPos);
+        transform.position = stream.ReadVector3();
     }
 
     void MyFunction()
     {
         // First way
-        JNet.RPC("OpenDoor", 30.0f, 10, "wtf");
+        JNet.RPC("OpenDoor", JNetTarget.All, 30.0f, 10, "wtf");
 
         // Second way
-        JBitStream stream = new JBitStream(256);
+        JNetBitStream stream = new JNetBitStream(256);
         stream.WriteFloat(30.0f);
         stream.WriteInt(10);
         stream.WriteString("wtf");
-        JNet.RPCAdv("OpenDoor2", stream);
+        JNet.RPCAdv("OpenDoor2", JNetTarget.All, stream);
     }
 
     [JRPC]
@@ -51,7 +50,7 @@ public class JNetTransform : JNetBehaviour {
     }
 
     [JRPC]
-    void OpenDoor2(JBitStream stream)
+    void OpenDoor2(JNetBitStream stream)
     {
         float val1 = stream.ReadFloat();
         int val2 = stream.ReadInt();
