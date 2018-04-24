@@ -404,7 +404,7 @@ namespace JNetInternal
             }
 
             // Process messages
-            JNetPacketHandler.ReadPckets();
+            JNetPacketHandler.ProcessIncommingPackets();
         }
 
         void LateUpdate()
@@ -420,7 +420,7 @@ namespace JNetInternal
             }
 
             // Process messages
-            JNetPacketHandler.SendPackets();
+            JNetPacketHandler.ProcessOutgoingPackets();
         }
     }
 }

@@ -19,7 +19,7 @@ namespace JNetInternal
         // 508 or 1492
         // 1200 is biggest for steam p2p unrealiable
 
-        public static void ReadPckets()
+        public static void ProcessIncommingPackets()
         {
             uint msgSize;
             uint msgCount;
@@ -88,7 +88,7 @@ namespace JNetInternal
             m_msgFunctionDict.Remove((ushort)type);
         }
 
-        public static void SendPackets()
+        public static void ProcessOutgoingPackets()
         {
             var outgoingMessages = JNetMessageHandler.messagesToSend;
             var channels = JNetManager.m_singleton.m_channels;
