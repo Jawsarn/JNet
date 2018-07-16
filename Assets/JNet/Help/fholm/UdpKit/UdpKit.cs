@@ -575,7 +575,18 @@ public struct JNetBitStream//UdpBitStream
 		Ptr += (count * 8);
 	}
 
-    // Jawsarn added, 
+    // Jawsarn added
+
+    // You want to use this before copy data
+    public void AddPadding()
+    {
+        int bitsUsed = Ptr % 8;
+        if (bitsUsed != 0)
+        {
+            Ptr += 8 - bitsUsed;
+        }
+    }
+
     public void WriteString(string value)
     {
         byte[] data = Encoding.UTF8.GetBytes(value);

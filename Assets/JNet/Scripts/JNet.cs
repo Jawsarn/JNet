@@ -52,7 +52,27 @@ public class JNet
         return JNetManager.m_singleton.GetCurrentClientIndex();
     }
 
+    public static JNetConnection GetClientConnection()
+    {
+        return null; // TODO fix
+    }
+
+    public static JNetConnection GetMasterClientConnection()
+    {
+        return null; // TODO fix
+    }
+
     public static void RPC(string name, JNetTarget target, params object[] values)
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            var type = values[i].GetType();
+            //NetworkWriter writer = new NetworkWriter();
+            // TODO continue
+        }
+    }
+
+    public static void RPC(string name, JNetConnection targetPlayer, params object[] values)
     {
         for (int i = 0; i < values.Length; i++)
         {
@@ -105,8 +125,9 @@ public class JNet
             newMessage.m_bitStream.WriteVector3(position);
             newMessage.m_bitStream.WriteQuaternion(orientation);
             newMessage.m_senderID = GetClientID(); // Not sure if needed?
+            newMessage.m_target = JNetTarget.OthersBuffered;
 
-            JNetMessageHandler.AddMessage(newMessage, false); // Don't buffer, since we want to send an updated position
+            JNetMessageHandler.AddMessage(newMessage);
 
             return newObject;
         }

@@ -35,8 +35,8 @@ namespace JNetInternal
                     buffer = new byte[msgSize];
                     if (SteamNetworking.ReadP2PPacket(buffer, 0, out msgSize, out senderID, channel))
                     {
-                        // Send to reading system
-                        JNetPacketHandler.ReadPacket(buffer, msgSize, senderID.m_SteamID);
+                        // Read packet
+                        ReadPacket(buffer, msgSize, senderID.m_SteamID);
                     }
                 }
             }
@@ -90,8 +90,90 @@ namespace JNetInternal
 
         public static void ProcessOutgoingPackets()
         {
-            var outgoingMessages = JNetMessageHandler.messagesToSend;
+            // TODO make this array and clear each frame instead 
+            List<List<JNetMessage>> unreliableMessages = new List<List<JNetMessage>>();
+
+            // Fix frame messages
+            var frameMessages = JNetMessageHandler.frameMessagesToSend;
             var channels = JNetManager.m_singleton.m_channels;
+            int channelsLen = channels.Length;
+
+            // Can we send to target?
+
+            foreach (var connToChannelList in frameMessages)
+            {
+                for (int i = 0; i < channelsLen; i++)
+                {
+                    if (channels[i] == JNetManager.ChannelType.Reliable)
+                    {
+                        var messages = connToChannelList.Value[i];
+                        foreach (var message in messages)
+                        {
+                            switch (message.m_target)
+                            {
+                                case JNetTarget.All:
+                                    break;
+                                case JNetTarget.Others:
+                                    break;
+                                case JNetTarget.MasterClient:
+                                    break;
+                                case JNetTarget.AllBuffered:
+                                    break;
+                                case JNetTarget.OthersBuffered:
+                                    break;
+                                case JNetTarget.AllViaServer:
+                                    break;
+                                case JNetTarget.AllBufferedViaServer:
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    else //if (channels[i] == JNetManager.ChannelType.Unreliable) 
+                    {
+                        var messages = connToChannelList.Value[i];
+                        foreach (var message in messages)
+                        {
+                            switch (message.m_target)
+                            {
+                                case JNetTarget.All:
+                                case JNetTarget.AllBuffered:
+                                    break;
+                                case JNetTarget.MasterClient:
+                                    break;
+                                case JNetTarget.Others:
+                                case JNetTarget.OthersBuffered:
+                                    break;
+                                case JNetTarget.AllViaServer:
+                                case JNetTarget.AllBufferedViaServer:
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+
+
+            // Start sending messages
+            var outgoingMessages = JNetMessageHandler.unreliableMessagesToSend;
+            var channels = JNetManager.m_singleton.m_channels;
+
+
+
+
+
+
+
+
+
+
+
+
 
             foreach (var senderToMessages in outgoingMessages)
             {

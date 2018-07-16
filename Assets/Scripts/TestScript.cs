@@ -16,7 +16,7 @@ public class TestScript : MonoBehaviour {
         stream.WriteBool(false);
         stream.WriteBool(true);
         stream.WriteBool(true);
-        JNetInternal.JNetPacketHandler.ReadPacket(stream.Data, (uint)stream.Data.Length, 0);
+        //JNetInternal.JNetPacketHandler.ReadPacket(stream.Data, (uint)stream.Data.Length, 0);
     }
 	
 	// Update is called once per frame

@@ -26,6 +26,12 @@ namespace JNetInternal
             }
         }
 
+        public enum ChannelType
+        {
+            Reliable,
+            Unreliable
+        }
+
         public enum ConnectionState
         {
             DISCONNECTED,
@@ -49,7 +55,7 @@ namespace JNetInternal
         public int m_maximumMembersByUser = 8; // Does nothing if hasConstantSetMembers is true
 
         [Header("Packet/Messaging settings")]
-        public EP2PSend[] m_channels = { EP2PSend.k_EP2PSendReliable, EP2PSend.k_EP2PSendUnreliable };
+        public ChannelType[] m_channels = { ChannelType.Reliable, ChannelType.Unreliable };
         public uint m_maxPacketPerChannelPerUpdate = 100; // Since we're using normal update, this can freeze the game
 
         CSteamID m_currentLobby = CSteamID.Nil;
